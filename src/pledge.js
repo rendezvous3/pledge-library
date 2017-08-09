@@ -21,9 +21,33 @@ function $Promise(executor){
     //this.constructor = new Promise(executor);
     this._internalResolve = function(obj){
         if (this._state === 'fulfilled' || this._state === 'rejected'){
+        //   if (this._state === 'fulfilled'){
+        //     if(this._handlerGroups.length){
+        //         this._handlerGroups[this._handlerGroups.length-1].successCb();
+        //     }
+        //   }
+
+        // if (this._state === 'rejected'){
+        //     if(this._handlerGroups.length){
+        //         this._handlerGroups[this._handlerGroups.length-1].errorCb();
+        //     }
+        //   } 
           return;  
         }
-        this._value = obj;
+        if(obj){
+            var that = this;
+            this._value = obj;
+            if(this._handlerGroups.length) {
+                this._handlerGroups.forEach(function(x){
+                    x.successCb(that._value);
+                });
+            }
+        } else {
+            if(this._handlerGroups.length) {
+                this._handlerGroups[0].successCb();
+                // this._handlerGroups.length-1  
+            }
+        }
         this._state = 'fulfilled';
 
     }
@@ -49,33 +73,16 @@ $Promise.prototype.then = function(suc, err){
     typeof suc === 'function' ? suc = suc : suc = false;
     typeof err === 'function' ? err = err : err = false;
     var handler = {};
-    // handler.successCb = new $Promise(suc);
-    // handler.errorCb = new $Promise(err);
-    //suc.bind(this);
-    //err.bind(this);
     handler['successCb'] = suc;
     handler['errorCb'] = err;
     var idx = this._handlerGroups.length;
     this._handlerGroups.push(handler);
     if (this._handlerGroups[idx].successCb && this._state === 'fulfilled') {
         var obj = this._handlerGroups[idx];
-        //this._internalResolve(obj);
         obj.successCb(this._value);
-        //this._state = 'fulfilled';
     }
-    this._internalResolve(this._handlerGroups[idx]);
-    //this._state = 'resolved';
-    //this._handlerGroups[idx].successCb.bind(this);
-    //this._handlerGroups[idx].errorCb.bind(this);
-    // this._handlerGroups[idx].successCb
-    //     .then(function(suc){
-    //         return suc;
-    //     })
-    //return this._handlerGroups[idx].successCb.resolve;
-    // var success = this._handlerGroups[idx].successCb;
-    // var reject = this._handlerGroups[idx].errorCb;
-    // return new Promise(success, reject);
-    //return new $Promise(success);
+    //this._internalResolve(this._handlerGroups[idx]);
+    //return new $Promise(this._internalResolve[idx]);
 }
 
 
