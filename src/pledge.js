@@ -4,6 +4,14 @@ Promises Workshop: build the pledge.js ES6-style promise library
 ----------------------------------------------------------------*/
 // YOUR CODE HERE:
 
+function executor(resolve, reject) {
+    if(err){
+        reject(err);
+    } else {
+        resolve('WinGARdium leviOHsa.');
+    }
+}
+
 function $Promise(executor){
     if(typeof executor !== 'function') {
         throw new TypeError(/executor.+function/i);
@@ -25,6 +33,10 @@ function $Promise(executor){
         this._state = 'rejected';
         this._value = reason;
     }
+    let resolve = this._internalResolve.bind(this);
+    let reject = this._internalReject.bind(this);
+    //executor.bind(this);
+    executor(resolve, reject);
 }
 
 $Promise.prototype.constructor = new Promise(executor);
