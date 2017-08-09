@@ -41,6 +41,7 @@ function $Promise(executor){
                 this._handlerGroups.forEach(function(x){
                     x.successCb(that._value);
                 });
+                that._handlerGroups.pop();
             }
         } else {
             if(this._handlerGroups.length) {
@@ -55,8 +56,22 @@ function $Promise(executor){
         if (this._state === 'rejected' || this._state === 'fulfilled') {
             return;
         }
+        if(reason){
+            var that = this;
+            this._value = reason;
+            if(this._handlerGroups.length) {
+                this._handlerGroups.forEach(function(x){
+                    x.errorCb(that._value);
+                });
+              //this._handlerGroups.pop();  
+            }
+        } else {
+            if(this._handlerGroups.length) {
+                this._handlerGroups[0].errorCb();
+                // this._handlerGroups.length-1  
+            }
+        }
         this._state = 'rejected';
-        this._value = reason;
     }
     let resolve = this._internalResolve.bind(this);
     let reject = this._internalReject.bind(this);
@@ -81,8 +96,17 @@ $Promise.prototype.then = function(suc, err){
         var obj = this._handlerGroups[idx];
         obj.successCb(this._value);
     }
+
+    if (this._handlerGroups[idx].errorCb && this._state === 'rejected') {
+        var obj = this._handlerGroups[idx];
+        obj.errorCb(this._value);
+    }
     //this._internalResolve(this._handlerGroups[idx]);
     //return new $Promise(this._internalResolve[idx]);
+}
+
+$Promise.prototype.catch = function(errHandler){
+    this.then(null, errHandler);
 }
 
 
